@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC P2P Test</title>
+
+    <style>
+        video {
+            width: 45%;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebRTC P2P Test</h1>
+
+    <p>左：自分の映像 ／ 右：相手の映像</p>
+
+    <!-- mutedにより、自分の音声が自分のスピーカーから流れるのを防ぐ -->
+    <video id="localVideo" autoplay muted playsinline></video>
+
+    <!-- 相手の映像を表示する -->
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <div>
+        <button id="startScreenButton">
+            画面共有を開始
+        </button>
+
+        <button id="stopScreenButton" disabled>
+            画面共有を終了
+        </button>
+    </div>
+
+    <!-- サーバーから提供されるSocket.IOのクライアントライブラリ -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- 自分で記述するJavaScript -->
+    <script type="module" src="/js/main.js"></script>
+</body>
+
+</html>
