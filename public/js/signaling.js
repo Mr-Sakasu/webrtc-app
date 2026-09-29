@@ -9,16 +9,20 @@ export function sendChatMessage(text) {
     socket.emit("chat-message", text);
 }
 
-export function sendOffer(offer) {
-    socket.emit("offer", offer);
+export function sendMediaState(state) {
+    socket.emit("media-state", state);
 }
 
-export function sendAnswer(answer) {
-    socket.emit("answer", answer);
+export function sendOffer(to, offer) {
+    socket.emit("offer", { to, data: offer });
 }
 
-export function sendIceCandidate(candidate) {
-    socket.emit("ice-candidate", candidate);
+export function sendAnswer(to, answer) {
+    socket.emit("answer", { to, data: answer });
+}
+
+export function sendIceCandidate(to, candidate) {
+    socket.emit("ice-candidate", { to, data: candidate });
 }
 
 export function onConnected(callback) {
@@ -35,6 +39,10 @@ export function onRoomJoined(callback) {
 
 export function onChatMessage(callback) {
     socket.on("chat-message", callback);
+}
+
+export function onMediaState(callback) {
+    socket.on("media-state", callback);
 }
 
 

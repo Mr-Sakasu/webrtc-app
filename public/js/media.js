@@ -1,4 +1,5 @@
 let cameraStream = null;
+let microphoneStream = null;
 let screenStream = null;
 
 export async function startCamera() {
@@ -13,6 +14,25 @@ export async function startCamera() {
         });
 
     return cameraStream;
+}
+
+export function stopCamera() {
+    cameraStream?.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+}
+
+export async function startMicrophone() {
+    if (microphoneStream?.active) return microphoneStream;
+    microphoneStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true
+    });
+    return microphoneStream;
+}
+
+export function stopMicrophone() {
+    microphoneStream?.getTracks().forEach((track) => track.stop());
+    microphoneStream = null;
 }
 
 export async function startScreenCapture() {
@@ -48,6 +68,10 @@ export function stopScreenCapture() {
 
 export function getCameraStream() {
     return cameraStream;
+}
+
+export function getMicrophoneStream() {
+    return microphoneStream;
 }
 
 export function getScreenStream() {

@@ -1,0 +1,296 @@
+:root {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    color: #17233b;
+    background: #f5f7fb;
+    font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; min-width: 320px; }
+button, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+svg { width: 20px; height: 20px; flex: none; }
+
+/* ヘッダーと本文の幅をそろえます。 */
+.app-shell { min-height: 100dvh; }
+.app-header {
+    height: 76px;
+    padding: 0 clamp(20px, 4vw, 64px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #fff;
+    border-bottom: 1px solid #e7ebf2;
+}
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    color: #17233b;
+    text-decoration: none;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -.055em;
+    white-space: nowrap;
+}
+.brand-dot { color: #4f64e9; }
+.brand-mark {
+    display: grid;
+    grid-template-columns: repeat(2, 9px);
+    grid-template-rows: repeat(2, 9px);
+    gap: 3px;
+    transform: rotate(-9deg);
+}
+.brand-mark span { background: #4f64e9; border-radius: 3px; }
+.brand-mark span:nth-child(2) { background: #91a0ff; border-radius: 3px 7px 3px 3px; }
+.brand-mark span:nth-child(3) { background: #91a0ff; border-radius: 3px 3px 3px 7px; }
+.header-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 9px 13px;
+    border: 1px solid #e6eaf0;
+    border-radius: 999px;
+    color: #52627b;
+    background: #fafbfe;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #9aa7ba; box-shadow: 0 0 0 3px #edf0f4; }
+.header-status.is-connected .status-dot { background: #45bc87; box-shadow: 0 0 0 3px #e4f7ed; }
+
+.workspace {
+    width: min(1560px, 100%);
+    min-height: calc(100dvh - 76px);
+    margin: 0 auto;
+    padding: clamp(24px, 3.2vw, 48px) clamp(20px, 4vw, 64px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+    gap: 28px;
+    align-items: stretch;
+}
+.meeting-panel { display: flex; flex-direction: column; min-width: 0; }
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+.eyebrow { margin: 0 0 8px; color: #74829b; font-size: 10px; font-weight: 800; letter-spacing: .17em; }
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 8px; font-size: clamp(25px, 2.5vw, 32px); line-height: 1.22; letter-spacing: -.045em; }
+h2 { margin-bottom: 0; font-size: 19px; letter-spacing: -.025em; }
+.section-description { margin-bottom: 0; color: #7d8aa0; font-size: 13px; line-height: 1.6; }
+.participant-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 13px;
+    border: 1px solid #e5e9f1;
+    border-radius: 10px;
+    color: #55647b;
+    background: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.participant-badge svg { width: 17px; height: 17px; color: #6879a3; }
+.participant-badge strong { color: #17233b; }
+
+/* 参加人数に応じて映像カードを自動で並べます。 */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+    align-content: start;
+    flex: 1;
+}
+.video-card {
+    position: relative;
+    min-width: 0;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid #303d59;
+    border-radius: 16px;
+    background: #1c2942;
+    box-shadow: 0 10px 25px rgba(29, 43, 77, .1);
+}
+.video-card video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.local-card:not(.is-screen) video { transform: scaleX(-1); }
+.video-card.is-screen video { object-fit: contain; }
+/* カメラをオフにしても参加者のカードは残します。画面共有中は共有画面を表示します。 */
+.video-card.camera-off:not(.is-screen) video { visibility: hidden; }
+.video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    color: #c6d0e4;
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+}
+.video-card.has-video .video-placeholder,
+.video-card.is-screen .video-placeholder { display: none; }
+.video-card.camera-off:not(.is-screen) .video-placeholder { display: flex; }
+.placeholder-avatar {
+    width: 66px;
+    height: 66px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #dbe2ff;
+    background: #405079;
+    font-size: 25px;
+    font-weight: 700;
+}
+.video-footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    min-height: 58px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    color: #fff;
+    background: linear-gradient(transparent, rgba(11, 19, 39, .8));
+    font-size: 13px;
+}
+.peer-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.self-label { margin-left: 5px; padding: 3px 6px; border-radius: 5px; background: rgba(255,255,255,.18); font-size: 10px; font-weight: 600; }
+.mic-state { margin-left: auto; padding: 4px 7px; flex: none; border-radius: 6px; color: #ffdee0; background: rgba(174, 67, 77, .38); font-size: 10px; font-weight: 700; white-space: nowrap; }
+.mic-state.is-on { color: #d2ffe5; background: rgba(47, 146, 93, .4); }
+.peer-state { flex: none; color: #d7e1f4; font-size: 11px; }
+
+.meeting-controls {
+    margin-top: 18px;
+    padding: 17px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border: 1px solid #e5eaf2;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 5px 20px rgba(36, 50, 83, .035);
+}
+.control-copy { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.control-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: none; border-radius: 10px; color: #5265d7; background: #eef0ff; }
+.control-copy strong, .control-copy span:not(.control-icon) { display: block; }
+.control-copy strong { margin-bottom: 3px; font-size: 13px; }
+.control-copy div span { color: #8692a6; font-size: 11px; white-space: nowrap; }
+.control-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.button { min-height: 38px; padding: 0 13px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 9px; font-size: 12px; font-weight: 700; transition: background .15s, transform .15s; white-space: nowrap; }
+.button:hover:not(:disabled), .send-button:hover:not(:disabled) { transform: translateY(-1px); }
+.button svg { width: 17px; height: 17px; }
+.button-primary { border: 1px solid #4f64e9; color: #fff; background: #4f64e9; box-shadow: 0 4px 11px rgba(79,100,233,.19); }
+.button-primary:hover:not(:disabled) { background: #3e52d5; }
+.button-device { border: 1px solid #dfe5ef; color: #45536c; background: #f8faff; }
+.button-device:hover:not(:disabled) { background: #eef2fb; }
+.button-device[aria-pressed="true"] { border-color: #b8c2fa; color: #4054bd; background: #eff1ff; }
+.button-secondary { border: 1px solid #dde3ed; color: #51617a; background: #fff; }
+.button-secondary:hover:not(:disabled) { background: #f4f6fb; }
+.button:disabled { opacity: .48; box-shadow: none; }
+
+/* チャットは映像エリアと独立してスクロールします。 */
+.chat-panel {
+    min-width: 0;
+    height: min(780px, calc(100dvh - 174px));
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e5eaf2;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(36, 50, 83, .045);
+}
+.chat-header { padding: 23px 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #edf0f5; }
+.chat-live { display: inline-flex; align-items: center; gap: 6px; color: #4d9873; background: #eaf8f0; border-radius: 999px; padding: 6px 9px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.chat-live span { width: 6px; height: 6px; border-radius: 50%; background: #48b57d; }
+.chat-messages {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    list-style: none;
+    overscroll-behavior: contain;
+}
+.chat-messages:empty::before {
+    content: "メッセージはまだありません。\A最初のひとことを送ってみましょう。";
+    display: grid;
+    place-items: center;
+    flex: 1;
+    color: #99a5b6;
+    font-size: 12px;
+    line-height: 1.8;
+    text-align: center;
+    white-space: pre-line;
+}
+.chat-message { max-width: 92%; display: flex; flex-direction: column; gap: 5px; align-self: flex-start; }
+.chat-message.own { align-self: flex-end; }
+.chat-sender { padding: 0 4px; color: #7d8ba0; font-size: 11px; font-weight: 700; }
+.chat-message.own .chat-sender { text-align: right; }
+.chat-content { min-width: 0; padding: 10px 12px; border-radius: 11px 11px 11px 3px; background: #f1f4f9; color: #263651; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.chat-message.own .chat-content { border-radius: 11px 11px 3px 11px; color: #fff; background: #5369e9; }
+.chat-content > :first-child { margin-top: 0; }
+.chat-content > :last-child { margin-bottom: 0; }
+.chat-content p, .chat-content ul, .chat-content ol, .chat-content pre { margin: .3em 0 .6em; }
+.chat-content a { color: #3758bd; text-decoration-thickness: 1px; }
+.chat-message.own .chat-content a { color: #fff; }
+.chat-content code { padding: .1em .3em; border-radius: 4px; background: rgba(23,35,59,.1); font-size: .94em; }
+.chat-message.own .chat-content code { background: rgba(255,255,255,.2); }
+.chat-content pre { padding: 10px; overflow-x: auto; border-radius: 7px; background: rgba(23,35,59,.1); }
+.chat-content pre code { padding: 0; background: none; }
+.chat-content .katex-display { overflow-x: auto; overflow-y: hidden; }
+.chat-composer { padding: 14px 16px 16px; border-top: 1px solid #edf0f5; }
+#chatForm { padding: 10px; border: 1px solid #dfe5ef; border-radius: 11px; transition: border-color .15s, box-shadow .15s; }
+#chatForm:focus-within { border-color: #8795ee; box-shadow: 0 0 0 3px rgba(79,100,233,.1); }
+#chatInput { width: 100%; min-height: 60px; max-height: 160px; padding: 2px 2px 8px; resize: vertical; border: 0; outline: 0; background: transparent; color: #263651; font-size: 12px; line-height: 1.5; }
+#chatInput::placeholder { color: #a0aabc; }
+#chatInput:disabled { opacity: .65; }
+.composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.composer-footer > span { color: #98a4b6; font-size: 10px; line-height: 1.4; }
+.send-button { width: 32px; height: 32px; display: grid; place-items: center; flex: none; border: 0; border-radius: 8px; color: #fff; background: #4f64e9; transition: background .15s, transform .15s; }
+.send-button:hover:not(:disabled) { background: #3e52d5; }
+.send-button:disabled { background: #bbc5e7; }
+.send-button svg { width: 17px; height: 17px; }
+.format-help { margin: 9px 2px 0; color: #94a0b2; font-size: 10px; line-height: 1.5; }
+.format-help code { color: #6976a0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+@media (max-width: 1250px) {
+    .meeting-controls { align-items: stretch; flex-direction: column; }
+}
+@media (max-width: 1060px) {
+    .workspace { grid-template-columns: minmax(0, 1fr); }
+    .chat-panel { height: 520px; min-height: 0; }
+}
+@media (max-width: 620px) {
+    .app-header { height: 64px; }
+    .workspace { min-height: calc(100dvh - 64px); gap: 22px; }
+    .brand { font-size: 22px; }
+    .header-status { max-width: 55%; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+    .section-heading { align-items: flex-start; flex-wrap: wrap; margin-bottom: 18px; }
+    .participant-badge { padding: 8px 10px; }
+    .video-grid { grid-template-columns: 1fr; }
+    .meeting-controls { align-items: stretch; flex-direction: column; padding: 15px; }
+    .control-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .button { padding: 0 8px; }
+    .chat-panel { height: 480px; }
+}

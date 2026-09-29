@@ -1,97 +1,114 @@
 import { sendIceCandidate } from "./signaling.js";
 
-let peerConnection = null;
-let pendingIceCandidates = [];
+// 相手のIDごとに、1本ずつ WebRTC 接続を持つ
+const peers = new Map();
+const pendingIceCandidates = new Map();
 
 const rtcConfiguration = {
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
 };
 
 export function createPeerConnection(
-    localStream,
+    peerId,
+    videoStream,
+    microphoneStream,
     onRemoteStream,
     onConnectionStateChange
 ) {
-    if (peerConnection && peerConnection.signalingState !== "closed") {
-        return peerConnection;
-    }
+    if (peers.has(peerId)) return peers.get(peerId).connection;
 
-    peerConnection = new RTCPeerConnection(rtcConfiguration);
+    const connection = new RTCPeerConnection(rtcConfiguration);
+    // オフのときも送信枠を作り、後でオンにしたら replaceTrack で切り替える
+    const videoTrack = videoStream?.getVideoTracks()[0];
+    const videoSender = videoTrack
+        ? connection.addTrack(videoTrack, videoStream)
+        : connection.addTransceiver("video", { direction: "sendrecv" }).sender;
+    const audioTrack = microphoneStream?.getAudioTracks()[0];
+    const audioSender = audioTrack
+        ? connection.addTrack(audioTrack, microphoneStream)
+        : connection.addTransceiver("audio", { direction: "sendrecv" }).sender;
 
-    localStream.getTracks().forEach((track) => {
-        peerConnection.addTrack(
-            track,
-            localStream
-        );
-    });
+    peers.set(peerId, { connection, videoSender, audioSender });
 
-    peerConnection.ontrack = (event) => {
-        onRemoteStream(event.streams[0]);
+    const remoteStream = new MediaStream();
+    connection.ontrack = (event) => {
+        // 映像と音声を1つの MediaStream にまとめて再生する
+        remoteStream.addTrack(event.track);
+        onRemoteStream(peerId, remoteStream);
     };
 
-    peerConnection.onconnectionstatechange = () => {
-        onConnectionStateChange(
-            peerConnection.connectionState
-        );
+    connection.onconnectionstatechange = () => {
+        onConnectionStateChange(peerId, connection.connectionState);
     };
 
-    peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-            sendIceCandidate(event.candidate);
-        }
+    connection.onicecandidate = (event) => {
+        if (event.candidate) sendIceCandidate(peerId, event.candidate);
     };
 
-    return peerConnection;
+    return connection;
 }
 
-export async function createOffer() {
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    return peerConnection.localDescription;
+export async function createOffer(peerId) {
+    const connection = peers.get(peerId).connection;
+    const offer = await connection.createOffer();
+    await connection.setLocalDescription(offer);
+    return connection.localDescription;
 }
 
-export async function receiveOffer(offer) {
-    await peerConnection.setRemoteDescription(offer);
-    await addPendingIceCandidates();
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    return peerConnection.localDescription;
+export async function receiveOffer(peerId, offer) {
+    const connection = peers.get(peerId).connection;
+    await connection.setRemoteDescription(offer);
+    await addPendingIceCandidates(peerId);
+    const answer = await connection.createAnswer();
+    await connection.setLocalDescription(answer);
+    return connection.localDescription;
 }
 
-export async function receiveAnswer(answer) {
-    if ( !peerConnection || peerConnection.signalingState !== "have-local-offer") {
+export async function receiveAnswer(peerId, answer) {
+    const connection = peers.get(peerId)?.connection;
+    if (!connection || connection.signalingState !== "have-local-offer") return;
+    await connection.setRemoteDescription(answer);
+    await addPendingIceCandidates(peerId);
+}
+
+export async function receiveIceCandidate(peerId, candidate) {
+    const connection = peers.get(peerId)?.connection;
+    if (!connection?.remoteDescription) {
+        const candidates = pendingIceCandidates.get(peerId) ?? [];
+        candidates.push(candidate);
+        pendingIceCandidates.set(peerId, candidates);
         return;
     }
-    await peerConnection.setRemoteDescription(answer);
-    await addPendingIceCandidates();
+    await connection.addIceCandidate(candidate);
 }
 
-export async function receiveIceCandidate(candidate) {
-    if ( !peerConnection || !peerConnection.remoteDescription ) {
-        pendingIceCandidates.push(candidate);
-        return;
+async function addPendingIceCandidates(peerId) {
+    const connection = peers.get(peerId).connection;
+    for (const candidate of pendingIceCandidates.get(peerId) ?? []) {
+        await connection.addIceCandidate(candidate);
     }
-    await peerConnection.addIceCandidate(candidate);
+    pendingIceCandidates.delete(peerId);
 }
 
-async function addPendingIceCandidates() {
-    for (const candidate of pendingIceCandidates) {
-        await peerConnection.addIceCandidate(candidate);
-    }
-    pendingIceCandidates = [];
+export async function replaceVideoTrack(track) {
+    // 画面共有の開始・終了を、接続中の全員へ反映する
+    await Promise.all([...peers.values()].map(({ videoSender }) => {
+        return videoSender?.replaceTrack(track);
+    }));
 }
 
-export function getVideoSender() {
-    return peerConnection?.getSenders().find((sender) => {
-            return sender.track?.kind === "video";
-        });
+export async function replaceAudioTrack(track) {
+    await Promise.all([...peers.values()].map(({ audioSender }) => {
+        return audioSender.replaceTrack(track);
+    }));
 }
 
-export function closePeerConnection() {
-    if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-    }
+export function closePeerConnection(peerId) {
+    peers.get(peerId)?.connection.close();
+    peers.delete(peerId);
+    pendingIceCandidates.delete(peerId);
+}
 
-    pendingIceCandidates = [];
+export function closeAllPeerConnections() {
+    for (const peerId of peers.keys()) closePeerConnection(peerId);
 }
