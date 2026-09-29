@@ -10,6 +10,9 @@ import {
 
 import {
     onConnected,
+    onDisconnected,
+    onRoomJoined,
+    onChatMessage,
     onUserConnected,
     onOffer,
     onAnswer,
@@ -17,6 +20,7 @@ import {
     onUserDisconnected,
     onRoomFull,
     joinRoom,
+    sendChatMessage,
     sendOffer,
     sendAnswer
 } from "./signaling.js";
@@ -37,7 +41,10 @@ import {
     clearRemoteStream,
     setScreenShareButtons,
     onStartScreenShare,
-    onStopScreenShare
+    onStopScreenShare,
+    setChatEnabled,
+    onChatSubmit,
+    appendChatMessage
 } from "./ui.js";
 
 
@@ -68,6 +75,12 @@ function preparePeerConnection() {
 onConnected(() => {
     joinRoom();
 });
+
+// サーバーがルーム参加を認めたら送信できるようにする
+onRoomJoined(() => setChatEnabled(true));
+onDisconnected(() => setChatEnabled(false));
+onChatMessage(appendChatMessage);
+onChatSubmit(sendChatMessage);
 
 
 // 1人目がOfferを作る

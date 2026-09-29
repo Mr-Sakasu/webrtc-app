@@ -4,6 +4,11 @@ export function joinRoom(){
     socket.emit("join-room");
 }
 
+// チャットも映像のシグナリングと同じルームを経由する
+export function sendChatMessage(text) {
+    socket.emit("chat-message", text);
+}
+
 export function sendOffer(offer) {
     socket.emit("offer", offer);
 }
@@ -18,6 +23,18 @@ export function sendIceCandidate(candidate) {
 
 export function onConnected(callback) {
     socket.on("connect", callback);
+}
+
+export function onDisconnected(callback) {
+    socket.on("disconnect", callback);
+}
+
+export function onRoomJoined(callback) {
+    socket.on("room-joined", callback);
+}
+
+export function onChatMessage(callback) {
+    socket.on("chat-message", callback);
 }
 
 

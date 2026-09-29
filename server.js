@@ -14,6 +14,7 @@ const server = http.createServer(app);
 // HTTPサーバー上にSocket.IOを追加
 const io = new Server(server);
 const ROOM = "test-room";
+const MAX_CHAT_LENGTH = 500;
 
 // // BASIC認証を設定
 // app.use(
@@ -40,7 +41,18 @@ io.on("connection", (socket) => {
         }
 
         socket.join(ROOM);
+        socket.emit("room-joined");
         socket.to(ROOM).emit("user-connected");
+    });
+
+    // ルーム参加者だけのメッセージを、送信者と相手に転送する
+    socket.on("chat-message", (message) => {
+        if (!socket.rooms.has(ROOM) || typeof message !== "string") return;
+        const text = message.trim();
+        if (!text || text.length > MAX_CHAT_LENGTH) return;
+
+        socket.emit("chat-message", { text, own: true });
+        socket.to(ROOM).emit("chat-message", { text, own: false });
     });
 
     //Offerを相手へ通知

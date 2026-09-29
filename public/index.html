@@ -11,6 +11,14 @@
             width: 45%;
             background-color: black;
         }
+
+        #chatMessages {
+            max-width: 40rem;
+            height: 10rem;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 0.5rem 0.5rem 0.5rem 2rem;
+        }
     </style>
 </head>
 
@@ -34,6 +42,17 @@
             画面共有を終了
         </button>
     </div>
+
+    <section aria-labelledby="chatHeading">
+        <h2 id="chatHeading">チャット</h2>
+        <!-- 受信したメッセージは JavaScript でここに追加する -->
+        <ul id="chatMessages" aria-live="polite"></ul>
+        <form id="chatForm">
+            <label for="chatInput">メッセージ</label>
+            <input id="chatInput" type="text" maxlength="500" autocomplete="off" disabled>
+            <button id="sendChatButton" type="submit" disabled>送信</button>
+        </form>
+    </section>
 
     <!-- サーバーから提供されるSocket.IOのクライアントライブラリ -->
     <script src="/socket.io/socket.io.js"></script>
